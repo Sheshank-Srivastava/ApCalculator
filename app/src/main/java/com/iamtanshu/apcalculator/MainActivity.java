@@ -12,18 +12,20 @@ import android.widget.Toast;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     private enum OPERATOR {
-        PLUS, MINUS, MULTIPLY, DIVIDE, EQUAL
+        PLUS, MINUS, MULTIPLY, DIVIDE, EQUAL, NONE
     }
 
     ImageButton one, two, three,
             four, five, six,
             seven, eight, nine,
             zero,
-            plus, subs, divide, multi;
+            plus, subs, divide, multi, equal;
     Button clear;
     TextView txtEquation, txtNumber;
     String number = "";
     String mEquation = "";
+    OPERATOR operator;
+    long first = 0, second = 0;
 
     @Override
 
@@ -34,6 +36,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         txtNumber = findViewById(R.id.edt_number);
         txtEquation = findViewById(R.id.txtFullEquation);
+        operator = OPERATOR.NONE;
 
         one = findViewById(R.id.one);
         two = findViewById(R.id.two);
@@ -50,6 +53,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         subs = findViewById(R.id.sub);
         multi = findViewById(R.id.multi);
         divide = findViewById(R.id.divide);
+        equal = findViewById(R.id.equal);
 
         one.setOnClickListener(this);
         two.setOnClickListener(this);
@@ -66,112 +70,122 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         subs.setOnClickListener(this);
         multi.setOnClickListener(this);
         divide.setOnClickListener(this);
+        equal.setOnClickListener(this);
     }
 
     @Override
     public void onClick(View view) {
         number = txtNumber.getText().toString().trim();
         mEquation = txtEquation.getText().toString().trim();
+        if (operator == OPERATOR.EQUAL) {
+            clearArea();
+            operator = OPERATOR.NONE;
+        }
         switch (view.getId()) {
             case R.id.one:
-                number += "1";
-                mEquation += "1";
-                txtNumber.setText(number);
-                txtEquation.setText(mEquation);
+                setNumber(1 + "", true);
                 break;
             case R.id.two:
-                number += "2";
-                mEquation += "2";
-                txtNumber.setText(number);
-                txtEquation.setText(mEquation);
+                setNumber(2 + "", true);
                 break;
             case R.id.three:
-                number += "3";
-                mEquation += "3";
-                txtNumber.setText(number);
-                txtEquation.setText(mEquation);
+                setNumber(3 + "", true);
                 break;
             case R.id.four:
-                number += "4";
-                mEquation += "4";
-                txtNumber.setText(number);
-                txtEquation.setText(mEquation);
+                setNumber(4 + "", true);
                 break;
             case R.id.five:
-                number += "5";
-                mEquation += "5";
-                txtNumber.setText(number);
-                txtEquation.setText(mEquation);
+                setNumber(5 + "", true);
                 break;
             case R.id.six:
-                number += "6";
-                mEquation += "6";
-                txtNumber.setText(number);
-                txtEquation.setText(mEquation);
+                setNumber(6 + "", true);
                 break;
             case R.id.seven:
-                number += "7";
-                mEquation += "7";
-                txtNumber.setText(number);
-                txtEquation.setText(mEquation);
+                setNumber(7 + "", true);
                 break;
             case R.id.eight:
-                number += "8";
-                mEquation += "8";
-                txtNumber.setText(number);
-                txtEquation.setText(mEquation);
+                setNumber(8 + "", true);
                 break;
             case R.id.nine:
-                number += "9";
-                mEquation += "9";
-                txtNumber.setText(number);
-                txtEquation.setText(mEquation);
+                setNumber(9 + "", true);
                 break;
             case R.id.zero:
-                number += "0";
-                mEquation += "0";
-                txtNumber.setText(number);
-                txtEquation.setText(mEquation);
+                setNumber(0 + "", true);
                 break;
             case R.id.plus:
-                txtNumber.setText("");
-                mEquation += "+";
-                txtEquation.setText(mEquation);
+                first = setFirst(txtNumber);
+                setNumber("+", false);
+                operator = OPERATOR.PLUS;
                 break;
             case R.id.sub:
-                txtNumber.setText("");
-                mEquation += "-";
-                txtEquation.setText(mEquation);
-
+                first = setFirst(txtNumber);
+                setNumber("-", false);
+                operator = OPERATOR.MINUS;
                 break;
             case R.id.multi:
-                txtNumber.setText("");
-                mEquation += "x";
-                txtEquation.setText(mEquation);
+                first = setFirst(txtNumber);
+                setNumber("x", false);
+                operator = OPERATOR.MULTIPLY;
                 break;
             case R.id.divide:
-                txtNumber.setText("");
-                mEquation += "/";
-                txtEquation.setText(mEquation);
+                first = setFirst(txtNumber);
+                setNumber("/", false);
+                operator = OPERATOR.DIVIDE;
                 break;
             case R.id.clearall:
                 clearArea();
                 break;
+            case R.id.equal:
+                second = setFirst(txtNumber);
+                if (checkEquation()) {
+                    switch (operator) {
+                        case PLUS:
+                            txtNumber.setText((first + second) + "");
+                            break;
+                        case MINUS:
+                            txtNumber.setText((first - second) + "");
+                            break;
+                        case MULTIPLY:
+                            txtNumber.setText((first * second) + "");
+                            break;
+                        case DIVIDE:
+                            txtNumber.setText((first / second) + "");
+                            break;
+                    }
+                    operator = OPERATOR.EQUAL;
+                }
+                break;
         }
+    }
+
+    private long setFirst(TextView view) {
+        long number = 0;
+        if (view.getText().toString().trim().equals("")) {
+            number = 0;
+        } else {
+            number = Long.parseLong(view.getText().toString().trim());
+        }
+        return number;
     }
 
     private boolean checkEquation() {
         String current = "", previous = "";
         boolean isSign = false;
         boolean isCorrectEquation = true;
-        for (int i = 0; i < mEquation.length(); i++) {
+        int length = mEquation.length();
+        for (int i = 0; i < length; i++) {
             current = String.valueOf(mEquation.charAt(i));
-            if (i == 0 && (current.equals("+") || current.equals("-") || current.equals("x") || current.equals("/"))) {
+            final boolean x = current.equals("+") || current.equals("-") || current.equals("x") || current.equals("/");
+            if (i == 0 && (x)) {
                 isCorrectEquation = false;
                 clearArea();
                 break;
-            }
-            if (current.equals("+") || current.equals("-") || current.equals("x") || current.equals("/")) {
+            } else if (i == (length - 1) && (x)) {
+                isCorrectEquation = false;
+                clearArea();
+                break;
+
+            } else if (x) {
                 if (isSign) {
                     isCorrectEquation = false;
                     clearArea();
@@ -191,5 +205,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         txtNumber.setText("");
         txtEquation.setText("");
         mEquation = number = "";
+        first = second = 0;
+    }
+
+    private void setNumber(String ch, boolean isfocus) {
+        if (isfocus) {
+            number += ch;
+            mEquation += ch;
+            txtNumber.setText(number);
+            txtEquation.setText(mEquation);
+        } else {
+            txtNumber.setText("");
+            mEquation += ch;
+            txtEquation.setText(mEquation);
+        }
     }
 }
