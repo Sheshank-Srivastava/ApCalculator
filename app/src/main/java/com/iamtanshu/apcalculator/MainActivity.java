@@ -7,7 +7,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
-import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -22,10 +21,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             plus, subs, divide, multi, equal;
     Button clear;
     TextView txtEquation, txtNumber;
-    String number = "";
-    String mEquation = "";
-    OPERATOR operator;
-    long first = 0, second = 0;
+
+    //Instance Variable
+    private String currentNumber;
+    private String stringNumberAtLeft;
+    private String stringNumberAtRight;
+    private OPERATOR currentOperator;
+    private int calculationResult;
+
+    private String calculationString;
 
     @Override
 
@@ -33,10 +37,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        currentNumber = "";
+        calculationResult = 0;
+        calculationString = "";
 
         txtNumber = findViewById(R.id.edt_number);
         txtEquation = findViewById(R.id.txtFullEquation);
-        operator = OPERATOR.NONE;
 
         one = findViewById(R.id.one);
         two = findViewById(R.id.two);
@@ -75,149 +81,110 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onClick(View view) {
-        number = txtNumber.getText().toString().trim();
-        mEquation = txtEquation.getText().toString().trim();
-        if (operator == OPERATOR.EQUAL) {
-            clearArea();
-            operator = OPERATOR.NONE;
-        }
         switch (view.getId()) {
             case R.id.one:
-                setNumber(1 + "", true);
+                numberIsTapped(1);
                 break;
             case R.id.two:
-                setNumber(2 + "", true);
+                numberIsTapped(2);
                 break;
             case R.id.three:
-                setNumber(3 + "", true);
+                numberIsTapped(3);
                 break;
             case R.id.four:
-                setNumber(4 + "", true);
+                numberIsTapped(4);
                 break;
             case R.id.five:
-                setNumber(5 + "", true);
+                numberIsTapped(5);
                 break;
             case R.id.six:
-                setNumber(6 + "", true);
+                numberIsTapped(6);
                 break;
             case R.id.seven:
-                setNumber(7 + "", true);
+                numberIsTapped(7);
                 break;
             case R.id.eight:
-                setNumber(8 + "", true);
+                numberIsTapped(8);
                 break;
             case R.id.nine:
-                setNumber(9 + "", true);
+                numberIsTapped(9);
                 break;
             case R.id.zero:
-                setNumber(0 + "", true);
+                numberIsTapped(0);
                 break;
             case R.id.plus:
-                first = setFirst(txtNumber);
-                setNumber("+", false);
-                operator = OPERATOR.PLUS;
+                operatorIsTapped(OPERATOR.PLUS);
+                calculationString += " + ";
                 break;
             case R.id.sub:
-                first = setFirst(txtNumber);
-                setNumber("-", false);
-                operator = OPERATOR.MINUS;
+                operatorIsTapped(OPERATOR.MINUS);
+                calculationString += " - ";
                 break;
             case R.id.multi:
-                first = setFirst(txtNumber);
-                setNumber("x", false);
-                operator = OPERATOR.MULTIPLY;
+                operatorIsTapped(OPERATOR.MULTIPLY);
+                calculationString += " * ";
+
                 break;
             case R.id.divide:
-                first = setFirst(txtNumber);
-                setNumber("/", false);
-                operator = OPERATOR.DIVIDE;
+                operatorIsTapped(OPERATOR.DIVIDE);
+                calculationString += " / ";
+
                 break;
             case R.id.clearall:
-                clearArea();
+                txtNumber.setText("");
+                txtEquation.setText("");
+                currentNumber = "";
+                calculationResult = 0;
+                calculationString = "";
                 break;
             case R.id.equal:
-                second = setFirst(txtNumber);
-                if (checkEquation()) {
-                    switch (operator) {
-                        case PLUS:
-                            txtNumber.setText((first + second) + "");
-                            break;
-                        case MINUS:
-                            txtNumber.setText((first - second) + "");
-                            break;
-                        case MULTIPLY:
-                            txtNumber.setText((first * second) + "");
-                            break;
-                        case DIVIDE:
-                            txtNumber.setText((first / second) + "");
-                            break;
-                    }
-                    operator = OPERATOR.EQUAL;
-                }
+                operatorIsTapped(OPERATOR.EQUAL);
                 break;
         }
+        txtEquation.setText(calculationString);
     }
 
-    private long setFirst(TextView view) {
-        long number = 0;
-        if (view.getText().toString().trim().equals("")) {
-            number = 0;
-        } else {
-            number = Long.parseLong(view.getText().toString().trim());
-        }
-        return number;
+    private void numberIsTapped(int tappedNumber) {
+        currentNumber = currentNumber + String.valueOf(tappedNumber);
+        txtNumber.setText(currentNumber);
+        calculationString = currentNumber;
+        txtEquation.setText(calculationString);
     }
 
-    private boolean checkEquation() {
-        String current = "", previous = "";
-        boolean isSign = false;
-        boolean isCorrectEquation = true;
-        int length = mEquation.length();
-        for (int i = 0; i < length; i++) {
-            current = String.valueOf(mEquation.charAt(i));
-            final boolean x = current.equals("+") || current.equals("-") || current.equals("x") || current.equals("/");
-            if (i == 0 && (x)) {
-                isCorrectEquation = false;
-                clearArea();
-                break;
-            } else if (i == (length - 1) && (x)) {
-                isCorrectEquation = false;
-                clearArea();
-                break;
+    private void operatorIsTapped(OPERATOR operator) {
+        if (currentOperator != null) {
+            if (currentNumber != "") {
 
-            } else if (x) {
-                if (isSign) {
-                    isCorrectEquation = false;
-                    clearArea();
-                    break;
+
+                stringNumberAtRight = currentNumber;
+                currentNumber = "";
+                switch (currentOperator) {
+                    case PLUS:
+                        calculationResult = Integer.parseInt(stringNumberAtLeft) +
+                                Integer.parseInt(stringNumberAtRight);
+                        break;
+                    case MINUS:
+                        calculationResult = Integer.parseInt(stringNumberAtLeft) -
+                                Integer.parseInt(stringNumberAtRight);
+                        break;
+                    case MULTIPLY:
+                        calculationResult = Integer.parseInt(stringNumberAtLeft) *
+                                Integer.parseInt(stringNumberAtRight);
+                        break;
+                    case DIVIDE:
+                        calculationResult = Integer.parseInt(stringNumberAtLeft) /
+                                Integer.parseInt(stringNumberAtRight);
+                        break;
                 }
-                isSign = true;
-            } else {
-                isSign = false;
+
+                stringNumberAtLeft = String.valueOf(calculationResult);
+                txtNumber.setText(stringNumberAtLeft);
+                calculationString = stringNumberAtLeft;
             }
-        }
-        if (!isCorrectEquation)
-            Toast.makeText(MainActivity.this, "Corrupet Equation", Toast.LENGTH_SHORT).show();
-        return isCorrectEquation;
-    }
-
-    private void clearArea() {
-        txtNumber.setText("");
-        txtEquation.setText("");
-        mEquation = number = "";
-        first = second = 0;
-    }
-
-    private void setNumber(String ch, boolean isfocus) {
-        if (isfocus) {
-            number += ch;
-            mEquation += ch;
-            txtNumber.setText(number);
-            txtEquation.setText(mEquation);
         } else {
-            txtNumber.setText("");
-            mEquation += ch;
-            txtEquation.setText(mEquation);
+            stringNumberAtLeft = currentNumber;
+            currentNumber = "";
         }
+        currentOperator = operator;
     }
 }
